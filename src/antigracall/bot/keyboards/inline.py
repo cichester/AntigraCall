@@ -1,6 +1,6 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
-from typing import List, Tuple
+from typing import List, Tuple, Optional
 from antigracall.utils.config import get_config
 
 def get_workspace_categories_keyboard() -> InlineKeyboardMarkup:
@@ -59,5 +59,29 @@ def get_sessions_keyboard(sessions: List[Tuple[str, str, str]], active_session_i
         )
         
     builder.button(text="❌ Annulla", callback_data="sess_cancel")
+    builder.adjust(1)
+    return builder.as_markup()
+
+def get_models_keyboard(models: List[str], active_model_id: Optional[str]) -> InlineKeyboardMarkup:
+    """Genera la tastiera per selezionare il modello di risposta dell'agente."""
+    builder = InlineKeyboardBuilder()
+    
+    # Opzione di default (CLI decide quale modello usare)
+    default_prefix = "🟢 " if active_model_id is None else ""
+    builder.button(
+        text=f"{default_prefix}Default (CLI)",
+        callback_data="model_set:default"
+    )
+    
+    # Elenca i modelli disponibili
+    for model_id in models:
+        prefix = "🟢 " if active_model_id == model_id else ""
+        builder.button(
+            text=f"{prefix}{model_id}",
+            callback_data=f"model_set:{model_id}"
+        )
+        
+    builder.button(text="🔄 Aggiorna lista", callback_data="model_refresh")
+    builder.button(text="❌ Annulla", callback_data="model_cancel")
     builder.adjust(1)
     return builder.as_markup()

@@ -21,6 +21,7 @@ class Settings:
         self.log_max_bytes = int(data.get("logging", {}).get("max_bytes", 10485760))
         self.log_backup_count = int(data.get("logging", {}).get("backup_count", 5))
         self.skills_paths = data.get("skills", {}).get("paths", [])
+        self.models = data.get("models", [])
 
 class WorkspaceInfo:
     def __init__(self, name: str, path: str, subfolders: List[str]):

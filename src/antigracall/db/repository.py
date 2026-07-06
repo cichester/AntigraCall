@@ -23,7 +23,8 @@ class DatabaseRepository:
                     workspace_path TEXT NOT NULL,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    is_active INTEGER DEFAULT 1
+                    is_active INTEGER DEFAULT 1,
+                    model TEXT
                 )
             """)
             await db.execute("""
@@ -35,6 +36,11 @@ class DatabaseRepository:
                     timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
             """)
+            # Migrazione: aggiunge la colonna 'model' se non presente in un DB preesistente
+            try:
+                await db.execute("ALTER TABLE sessions ADD COLUMN model TEXT")
+            except aiosqlite.OperationalError:
+                pass
             await db.commit()
 
     async def get_active_session(self) -> Optional[Session]:
@@ -51,7 +57,8 @@ class DatabaseRepository:
                         row['workspace_path'], 
                         row['created_at'], 
                         row['updated_at'], 
-                        row['is_active']
+                        row['is_active'],
+                        row['model'] if 'model' in row.keys() else None
                     )
         return None
 
@@ -70,22 +77,23 @@ class DatabaseRepository:
                         row['workspace_path'], 
                         row['created_at'], 
                         row['updated_at'], 
-                        row['is_active']
+                        row['is_active'],
+                        row['model'] if 'model' in row.keys() else None
                     )
         return None
 
-    async def create_session(self, session_id: str, workspace_path: str) -> Session:
+    async def create_session(self, session_id: str, workspace_path: str, model: Optional[str] = None) -> Session:
         """Crea una nuova sessione e disattiva le precedenti."""
         async with aiosqlite.connect(self.db_path) as db:
             # Disattiva le vecchie sessioni
             await db.execute("UPDATE sessions SET is_active = 0 WHERE is_active = 1")
             # Inserisce la nuova
             await db.execute(
-                "INSERT INTO sessions (id, workspace_path) VALUES (?, ?)",
-                (session_id, workspace_path)
+                "INSERT INTO sessions (id, workspace_path, model) VALUES (?, ?, ?)",
+                (session_id, workspace_path, model)
             )
             await db.commit()
-            return Session(session_id, workspace_path, "", "", 1)
+            return Session(session_id, workspace_path, "", "", 1, model)
 
     async def activate_session(self, session_id: str):
         """Disattiva tutte le sessioni e attiva quella specificata."""
@@ -103,6 +111,15 @@ class DatabaseRepository:
             await db.execute(
                 "UPDATE sessions SET workspace_path = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
                 (workspace_path, session_id)
+            )
+            await db.commit()
+
+    async def update_session_model(self, session_id: str, model: Optional[str]):
+        """Aggiorna il modello associato alla sessione corrente."""
+        async with aiosqlite.connect(self.db_path) as db:
+            await db.execute(
+                "UPDATE sessions SET model = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+                (model, session_id)
             )
             await db.commit()
 

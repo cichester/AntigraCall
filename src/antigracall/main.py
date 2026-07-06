@@ -5,7 +5,7 @@ from aiogram import Bot, Dispatcher
 from antigracall.utils.config import get_config
 from antigracall.utils.logger import get_logger
 from antigracall.bot.middlewares.auth import AuthMiddleware
-from antigracall.bot.handlers import start, chat, workspace, session, admin
+from antigracall.bot.handlers import start, chat, workspace, session, admin, model
 from antigracall.agent.manager import get_agent_manager
 
 logger = logging.getLogger("antigracall.main")
@@ -42,6 +42,7 @@ async def main_async():
     dp.include_router(start.router)
     dp.include_router(workspace.router)
     dp.include_router(session.router)
+    dp.include_router(model.router)
     dp.include_router(admin.router)
     dp.include_router(chat.router)
     

@@ -44,13 +44,15 @@ async def cmd_status(message: types.Message):
             
         ws_path = manager.current_workspace or "Nessuno"
         session_id = manager.current_session_id or "Nessuna"
+        model_name = manager.current_model or "Default (CLI)"
         
         status_text = (
             "📊 <b>Stato AntigraCall</b>\n\n"
             f"├─ ⏱️ <b>Uptime bot:</b> <code>{uptime_str}</code>\n"
             f"├─ 🗂️ <b>Workspace attivo:</b> <code>{ws_path}</code>\n"
             f"├─ 💬 <b>ID Sessione:</b> <code>{session_id}</code>\n"
-            f"└─ 🧠 <b>Stato Agente:</b> <code>{agent_status}</code>"
+            f"├─ 🧠 <b>Modello attivo:</b> <code>{model_name}</code>\n"
+            f"└─ 🤖 <b>Stato Agente:</b> <code>{agent_status}</code>"
         )
         await message.answer(status_text, parse_mode="HTML")
     except Exception as e:

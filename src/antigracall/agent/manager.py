@@ -23,6 +23,8 @@ class AgentManager:
         self.config = get_config()
         self.current_workspace: Optional[Path] = None
         self.current_session_id: Optional[str] = None
+        self.current_model: Optional[str] = None
+        self._available_models: Optional[list[str]] = None
         self.current_process: Optional[asyncio.subprocess.Process] = None
         self._was_interrupted = False
         self.db_repo = DatabaseRepository(self.config.db_path)
@@ -56,11 +58,12 @@ class AgentManager:
         if active_session:
             self.current_session_id = active_session.id
             self.current_workspace = Path(active_session.workspace_path)
-            logger.info(f"Ripristinata sessione attiva {self.current_session_id} in {self.current_workspace}")
+            self.current_model = active_session.model
+            logger.info(f"Ripristinata sessione attiva {self.current_session_id} in {self.current_workspace} con modello {self.current_model}")
         else:
             self.current_session_id = str(uuid.uuid4())
-            await self.db_repo.create_session(self.current_session_id, str(self.current_workspace))
-            logger.info(f"Nessuna sessione attiva trovata. Creata sessione {self.current_session_id} in {self.current_workspace}")
+            await self.db_repo.create_session(self.current_session_id, str(self.current_workspace), self.current_model)
+            logger.info(f"Nessuna sessione attiva trovata. Creata sessione {self.current_session_id} in {self.current_workspace} con modello {self.current_model}")
 
     async def send_message(self, text: str) -> tuple[str, list[Path]]:
         """Invia un messaggio all'agente Antigravity CLI e restituisce la risposta e i file modificati."""
@@ -100,6 +103,8 @@ class AgentManager:
             "--conversation", self.current_session_id,
             "--dangerously-skip-permissions"
         ]
+        if self.current_model:
+            args.extend(["--model", self.current_model])
         if cwd:
             args.extend(["--add-dir", cwd])
 
@@ -227,6 +232,80 @@ class AgentManager:
         if self.current_session_id:
             await self.db_repo.update_session_workspace(self.current_session_id, str(workspace_path))
         logger.info(f"Workspace cambiato a: {workspace_path}")
+
+    async def set_model(self, model: Optional[str]):
+        """Cambia il modello corrente della sessione attiva."""
+        self.current_model = model
+        if self.current_session_id:
+            await self.db_repo.update_session_model(self.current_session_id, model)
+        logger.info(f"Modello impostato su: {model}")
+
+    async def get_available_models(self, force_refresh: bool = False) -> list[str]:
+        """Ottiene l'elenco dei modelli disponibili dinamicamente o tramite fallback."""
+        if not force_refresh and self._available_models is not None:
+            return self._available_models
+
+        # Prova a interrogare la CLI
+        if AGY_BIN.exists():
+            try:
+                logger.info("Interrogazione dinamica della CLI agy per la lista dei modelli...")
+                process = await asyncio.create_subprocess_exec(
+                    str(AGY_BIN), "models",
+                    stdout=asyncio.subprocess.PIPE,
+                    stderr=asyncio.subprocess.PIPE,
+                )
+                stdout, stderr = await asyncio.wait_for(process.communicate(), timeout=6.0)
+                
+                if process.returncode == 0:
+                    raw_output = stdout.decode("utf-8", errors="replace")
+                    models = []
+                    for line in raw_output.splitlines():
+                        line = line.strip()
+                        if not line:
+                            continue
+                        # Rimuove simboli di elenco
+                        for prefix in ("•", "-", "*"):
+                            if line.startswith(prefix):
+                                line = line[len(prefix):].strip()
+                        # Ignora intestazioni o messaggi di errore/utilizzo
+                        if line.lower().startswith(("usage:", "error:", "flags:", "available models", "list available")):
+                            continue
+                        if len(line) > 50:
+                            continue
+                        models.append(line)
+                    
+                    if models:
+                        self._available_models = models
+                        logger.info(f"Recuperati con successo {len(models)} modelli dalla CLI.")
+                        return models
+                else:
+                    stderr_txt = stderr.decode("utf-8", errors="replace").strip()
+                    logger.warning(f"La CLI ha restituito errore {process.returncode}: {stderr_txt}")
+            except Exception as e:
+                logger.warning(f"Errore durante la chiamata 'agy models': {e}")
+
+        # Fallback 1: leggi configurazione settings.yaml
+        if hasattr(self.config.settings, "models") and self.config.settings.models:
+            logger.info("Utilizzo della lista modelli definita in settings.yaml (Fallback 1).")
+            config_models = [m.get("id") for m in self.config.settings.models if m.get("id")]
+            if config_models:
+                self._available_models = config_models
+                return config_models
+
+        # Fallback 2: hardcoded defaults
+        logger.info("Utilizzo dell'elenco modelli predefinito del codice (Fallback 2).")
+        default_models = [
+            "Gemini 3.5 Flash (High)",
+            "Gemini 3.5 Flash (Medium)",
+            "Gemini 3.5 Flash (Low)",
+            "Gemini 3.1 Pro (High)",
+            "Gemini 3.1 Pro (Low)",
+            "Claude Sonnet 4.6 (Thinking)",
+            "Claude Opus 4.6 (Thinking)",
+            "GPT-OSS 120B (Medium)"
+        ]
+        self._available_models = default_models
+        return default_models
 
 
 # Singleton
