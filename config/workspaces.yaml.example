@@ -1,0 +1,16 @@
+workspaces:
+  - name: "🚀 Progetti Personali"
+    path: "Tuo Path Personale"
+    subfolders:
+      - Pippo
+      - Paperino
+      - Pluto
+
+  - name: "🎓 Università"
+    path: "Tuo path per l'uni"
+    subfolders:
+      - Topolino
+      - Minnie
+      - Qui
+      - Quo
+      - Qua

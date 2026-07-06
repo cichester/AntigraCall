@@ -1,0 +1,59 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual Environment
+.venv/
+venv/
+ENV/
+env/
+
+# IDE & Editor
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+
+# Database & Storage
+*.db
+*.sqlite
+*.sqlite3
+
+# Configuration
+.env
+config/local_settings.yaml
+
+# OS
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+ANIMA.md
+SPRINT.md
+temp/
+start_bot.bat
+settings.yaml
+workspaces.yaml
+antigracall.log

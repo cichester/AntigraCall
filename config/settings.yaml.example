@@ -1,0 +1,17 @@
+# Configurazione generale del bot
+bot:
+  # Timeout in secondi per le risposte dell'agente
+  agent_timeout: 120
+  
+  # Limite di caratteri per singolo messaggio Telegram (max 4096)
+  max_message_length: 4000
+  
+  # Lunghezza oltre la quale il blocco di codice viene salvato come file anziché splittato
+  code_file_threshold: 6000
+
+# Configurazione logging
+logging:
+  level: INFO
+  file: antigracall.log
+  max_bytes: 10485760  # 10MB
+  backup_count: 5

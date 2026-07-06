@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=61.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "antigracall"
+version = "0.1.0"
+description = "A Telegram bot to remote-control Google Antigravity AI agents on your machine."
+readme = "README.md"
+authors = [
+    { name = "User", email = "user@example.com" }
+]
+requires-python = ">=3.11"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: Microsoft :: Windows",
+]
+dependencies = [
+    "aiogram>=3.0",
+    "aiosqlite>=0.19.0",
+    "pyyaml>=6.0",
+    "python-dotenv>=1.0.0",
+]
+
+[project.scripts]
+antigracall = "antigracall.main:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["antigracall*"]
