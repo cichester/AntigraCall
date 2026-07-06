@@ -41,10 +41,10 @@
    - `TELEGRAM_ALLOWED_USER_ID`: Il tuo ID Telegram numerico (solo tu potrai interagire col bot).
 
 4. **Configura le cartelle di lavoro (`workspaces.yaml`)**:
-   Apri il file `config/workspaces.yaml` e modifica le sezioni `workspaces` per specificare i percorsi delle cartelle che desideri rendere disponibili al bot. Adatta i nomi delle categorie e delle sottocartelle alle tue esigenze.
+   Copia il file `config/workspaces.yaml.example` in `config/workspaces.yaml` e modifica le sezioni `workspaces` per specificare i percorsi delle cartelle che desideri rendere disponibili al bot. Adatta i nomi delle categorie e delle sottocartelle alle tue esigenze.
    
 5. **Configura le impostazioni del bot (`settings.yaml`)**:
-   Apri il file `config/settings.yaml` e modifica le impostazioni del bot secondo le tue preferenze:
+   Copia il file `config/settings.yaml.example` in `config/settings.yaml` e modifica le impostazioni del bot secondo le tue preferenze:
    - `agent_timeout`: Tempo massimo in secondi per le risposte dell'agente.
    - `max_message_length`: Lunghezza massima dei messaggi inviati su Telegram.
    - `code_file_threshold`: Soglia di caratteri oltre la quale il codice viene salvato come file.
